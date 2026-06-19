@@ -2,9 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import LogoutButton from '../dashboard/logout-button'
-import dynamic from 'next/dynamic'
-
-const ShaderBackground = dynamic(() => import('@/components/ui/shader-background'), { ssr: false })
+import ShaderBackgroundWrapper from '@/components/ui/shader-background-wrapper'
 
 export default async function AdminLayout({
   children,
@@ -40,7 +38,7 @@ export default async function AdminLayout({
 
   return (
     <div className="flex min-h-screen bg-black text-neutral-100 font-sans relative overflow-hidden">
-      <ShaderBackground />
+      <ShaderBackgroundWrapper />
       
       {/* Sidebar */}
       <aside className="relative z-10 w-64 border-r border-cyan-500/30 bg-black/40 backdrop-blur-md flex flex-col shrink-0 shadow-[4px_0_24px_rgba(6,182,212,0.1)]">

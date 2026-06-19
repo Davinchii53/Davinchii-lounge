@@ -1,10 +1,12 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import dynamic from 'next/dynamic'
 import LogoutButton from './logout-button'
-import SessionPanel from './session-panel'
-import FnbPanel from './fnb-panel'
-import BalanceHistory from './balance-history'
-import ProfileNameEditor from './profile-name-editor'
+
+const SessionPanel = dynamic(() => import('./session-panel'), { ssr: false })
+const FnbPanel = dynamic(() => import('./fnb-panel'), { ssr: false })
+const BalanceHistory = dynamic(() => import('./balance-history'), { ssr: false })
+const ProfileNameEditor = dynamic(() => import('./profile-name-editor'), { ssr: false })
 
 export const dynamic = 'force-dynamic'
 
