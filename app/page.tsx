@@ -3,7 +3,9 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import ShaderBackground from '@/components/ui/shader-background'
+import dynamic from 'next/dynamic'
+
+const ShaderBackground = dynamic(() => import('@/components/ui/shader-background'), { ssr: false })
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')

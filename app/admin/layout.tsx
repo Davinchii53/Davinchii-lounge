@@ -2,7 +2,9 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import LogoutButton from '../dashboard/logout-button'
-import ShaderBackground from '@/components/ui/shader-background'
+import dynamic from 'next/dynamic'
+
+const ShaderBackground = dynamic(() => import('@/components/ui/shader-background'), { ssr: false })
 
 export default async function AdminLayout({
   children,
