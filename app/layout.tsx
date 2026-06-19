@@ -13,6 +13,9 @@ const spaceGrotesk = Space_Grotesk({
 export const metadata: Metadata = {
   title: "Davinchii Lounge",
   description: "Premium gaming and internet lounge experience.",
+  icons: {
+    icon: "/icon.svg",
+  },
 };
 
 export default function RootLayout({
