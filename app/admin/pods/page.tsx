@@ -6,16 +6,21 @@ export const dynamic = 'force-dynamic'
 export default async function AdminPodsPage() {
   const supabase = await createClient()
 
-  const { data: pods } = await supabase
-    .from('pods')
-    .select('*')
-    .order('zone')
-    .order('label')
+  // Fetch pods and active sessions in parallel
+  const [podsRes, activeSessionsRes] = await Promise.all([
+    supabase
+      .from('pods')
+      .select('*')
+      .order('zone')
+      .order('label'),
+    supabase
+      .from('sessions')
+      .select('id, pod_id, started_at, customer_id')
+      .is('ended_at', null)
+  ])
 
-  const { data: activeSessions } = await supabase
-    .from('sessions')
-    .select('id, pod_id, started_at, customer_id')
-    .is('ended_at', null)
+  const pods = podsRes.data
+  const activeSessions = activeSessionsRes.data
 
   const activeSessionsByPod = activeSessions?.reduce((acc: any, session) => {
     acc[session.pod_id] = session

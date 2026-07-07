@@ -39,13 +39,9 @@ export async function middleware(request: NextRequest) {
     }
 
     if (url.pathname.startsWith('/admin')) {
-      const { data: adminData } = await supabase
-        .from('admin_users')
-        .select('id')
-        .eq('id', user.id)
-        .single()
+      const isAdmin = user.user_metadata?.is_admin === true
 
-      if (!adminData) {
+      if (!isAdmin) {
         // Not an admin, bounce to customer dashboard
         return NextResponse.redirect(new URL('/dashboard', request.url))
       }
@@ -71,13 +67,9 @@ export async function middleware(request: NextRequest) {
   if (url.pathname === '/' || url.pathname === '/signup') {
     if (user) {
       // Check if admin to decide where to redirect
-      const { data: adminData } = await supabase
-        .from('admin_users')
-        .select('id')
-        .eq('id', user.id)
-        .single()
+      const isAdmin = user.user_metadata?.is_admin === true
 
-      if (adminData) {
+      if (isAdmin) {
         return NextResponse.redirect(new URL('/admin', request.url))
       } else {
         return NextResponse.redirect(new URL('/dashboard', request.url))

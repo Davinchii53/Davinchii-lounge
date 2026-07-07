@@ -6,21 +6,25 @@ export const dynamic = 'force-dynamic'
 export default async function AdminDashboardPage() {
   const supabase = await createClient()
 
-  // Fetch metrics
-  const { count: activePodsCount } = await supabase
-    .from('pods')
-    .select('id', { count: 'exact', head: true })
-    .neq('status', 'idle')
-    .neq('status', 'maintenance') // essentially active
+  // Fetch metrics in parallel
+  const [activePodsRes, totalPodsRes, pendingOrdersRes] = await Promise.all([
+    supabase
+      .from('pods')
+      .select('id', { count: 'exact', head: true })
+      .neq('status', 'idle')
+      .neq('status', 'maintenance'), // essentially active
+    supabase
+      .from('pods')
+      .select('id', { count: 'exact', head: true }),
+    supabase
+      .from('orders')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'pending')
+  ])
 
-  const { count: totalPodsCount } = await supabase
-    .from('pods')
-    .select('id', { count: 'exact', head: true })
-
-  const { count: pendingOrdersCount } = await supabase
-    .from('orders')
-    .select('id', { count: 'exact', head: true })
-    .eq('status', 'pending')
+  const activePodsCount = activePodsRes.count
+  const totalPodsCount = totalPodsRes.count
+  const pendingOrdersCount = pendingOrdersRes.count
 
   return (
     <div className="p-8 space-y-8 relative z-10">

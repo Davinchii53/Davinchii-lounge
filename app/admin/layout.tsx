@@ -17,13 +17,9 @@ export default async function AdminLayout({
     redirect('/')
   }
 
-  const { data: adminData } = await supabase
-    .from('admin_users')
-    .select('id')
-    .eq('id', user.id)
-    .single()
+  const isAdmin = user.user_metadata?.is_admin === true
 
-  if (!adminData) {
+  if (!isAdmin) {
     redirect('/dashboard') // Redirect non-admins back to the customer dashboard
   }
 
