@@ -17,72 +17,76 @@ export default async function DashboardPage() {
     redirect('/')
   }
 
-  const { data: customer } = await supabase
-    .from('customers')
-    .select('email, time_balance_seconds, display_name')
-    .eq('id', user.id)
-    .single()
+  const [customerRes, activeSessionRes, idlePodsRes, adjustmentsRes, menuItemsRes] = await Promise.all([
+    supabase
+      .from('customers')
+      .select('email, time_balance_seconds, display_name')
+      .eq('id', user.id)
+      .single(),
+    supabase
+      .from('sessions')
+      .select('id, pod_id, started_at')
+      .eq('customer_id', user.id)
+      .is('ended_at', null)
+      .maybeSingle(),
+    supabase
+      .from('pods')
+      .select('id, label, zone, specs')
+      .eq('status', 'idle')
+      .order('zone')
+      .order('label'),
+    supabase
+      .from('balance_adjustments')
+      .select('id, created_at, type, seconds_delta, note')
+      .eq('customer_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(5),
+    supabase
+      .from('menu_items')
+      .select('*')
+      .order('category')
+      .order('name')
+  ])
+
+  const customer = customerRes.data
+  const activeSession = activeSessionRes.data
+  const idlePods = idlePodsRes.data
+  const adjustments = adjustmentsRes.data
+  const menuItems = menuItemsRes.data
 
   if (!customer) {
     redirect('/')
   }
 
-  const { data: activeSession } = await supabase
-    .from('sessions')
-    .select('id, pod_id, started_at')
-    .eq('customer_id', user.id)
-    .is('ended_at', null)
-    .maybeSingle()
-
   let podLabel: string | null = null
   let podZone: string | null = null
   let podSpecs: string | null = null
-
-  if (activeSession) {
-    const { data: pod } = await supabase
-      .from('pods')
-      .select('label, zone, specs')
-      .eq('id', activeSession.pod_id)
-      .single()
-    podLabel = pod?.label ?? null
-    podZone = pod?.zone ?? null
-    podSpecs = pod?.specs ?? null
-  }
-
-  const { data: idlePods } = await supabase
-    .from('pods')
-    .select('id, label, zone, specs')
-    .eq('status', 'idle')
-    .order('zone')
-    .order('label')
-
-  const { data: adjustments } = await supabase
-    .from('balance_adjustments')
-    .select('id, created_at, type, seconds_delta, note')
-    .eq('customer_id', user.id)
-    .order('created_at', { ascending: false })
-    .limit(5)
-
-  const { data: menuItems } = await supabase
-    .from('menu_items')
-    .select('*')
-    .order('category')
-    .order('name')
-
   let sessionOrders: any[] = []
+
   if (activeSession) {
-    const { data: orders } = await supabase
-      .from('orders')
-      .select(`
-        id, total_idr, total_seconds_charged, status, created_at,
-        order_items (
-          menu_item_id, quantity,
-          menu_items (name)
-        )
-      `)
-      .eq('session_id', activeSession.id)
-      .order('created_at', { ascending: false })
-    sessionOrders = orders ?? []
+    const [podRes, ordersRes] = await Promise.all([
+      supabase
+        .from('pods')
+        .select('label, zone, specs')
+        .eq('id', activeSession.pod_id)
+        .single(),
+      supabase
+        .from('orders')
+        .select(`
+          id, total_idr, total_seconds_charged, status, created_at,
+          order_items (
+            menu_item_id, quantity,
+            menu_items (name)
+          )
+        `)
+        .eq('session_id', activeSession.id)
+        .order('created_at', { ascending: false })
+    ])
+
+    podLabel = podRes.data?.label ?? null
+    podZone = podRes.data?.zone ?? null
+    podSpecs = podRes.data?.specs ?? null
+    sessionOrders = ordersRes.data ?? []
   }
 
   const formatBalance = (totalSeconds: number) => {

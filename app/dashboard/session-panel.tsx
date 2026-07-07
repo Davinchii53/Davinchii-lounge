@@ -37,7 +37,7 @@ export default function SessionPanel({
   const [elapsed, setElapsed] = useState(0)
 
   useEffect(() => {
-    if (!activeSession) return
+    if (!activeSession || loading) return
     const start = new Date(activeSession.started_at).getTime()
     
     const interval = setInterval(() => {
@@ -46,7 +46,7 @@ export default function SessionPanel({
     }, 1000)
 
     return () => clearInterval(interval)
-  }, [activeSession])
+  }, [activeSession, loading])
 
   const formatTime = (totalSeconds: number) => {
     const h = Math.floor(totalSeconds / 3600)
