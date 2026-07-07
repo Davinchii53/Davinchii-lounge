@@ -3,7 +3,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { WarningGraphic } from "./warning-graphic";
 import { useEffect } from "react";
-import { createPortal } from "react-dom";
 
 interface ConfirmModalProps {
   isOpen: boolean;
@@ -40,7 +39,7 @@ export function ConfirmModal({
 
   return (
     <AnimatePresence>
-      {isOpen && typeof window !== "undefined" && createPortal(
+      {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <motion.div
             initial={{ opacity: 0 }}
@@ -88,8 +87,7 @@ export function ConfirmModal({
               </button>
             </div>
           </motion.div>
-        </div>,
-        document.body
+        </div>
       )}
     </AnimatePresence>
   );

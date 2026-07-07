@@ -51,7 +51,7 @@ export default async function AdminAccountsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div>
           <h3 className="text-lg font-bold text-white mb-4 drop-shadow-[0_0_5px_rgba(255,255,255,0.5)]">Current Admins</h3>
-          <div className="bg-black/40 backdrop-blur-md border border-cyan-500/30 rounded-xl overflow-hidden shadow-[0_0_15px_rgba(6,182,212,0.15)]">
+          <div className="bg-black/40 border border-cyan-500/30 rounded-xl overflow-hidden shadow-[0_0_15px_rgba(6,182,212,0.15)]">
             <table className="w-full text-left text-sm text-neutral-300">
               <thead className="bg-cyan-950/40 border-b border-cyan-500/30 text-xs uppercase font-bold text-cyan-400 tracking-wider">
                 <tr>
