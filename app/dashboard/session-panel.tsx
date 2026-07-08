@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useOptimistic, startTransition } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { motion } from 'framer-motion'
@@ -31,10 +31,13 @@ export default function SessionPanel({
   idlePods: Pod[]
   customerBalance: number
 }) {
-  const [activeSession, addOptimisticSession] = useOptimistic(
-    realActiveSession,
-    (state, newSession: ActiveSession | null) => newSession
-  )
+  const [overrideSession, setOverrideSession] = useState<ActiveSession | null | undefined>(undefined)
+  
+  useEffect(() => {
+    setOverrideSession(undefined)
+  }, [realActiveSession])
+
+  const activeSession = overrideSession !== undefined ? overrideSession : realActiveSession
 
   const [selectedPod, setSelectedPod] = useState('')
   const [loading, setLoading] = useState(false)
@@ -71,16 +74,14 @@ export default function SessionPanel({
     setLoading(true)
 
     const podToStart = idlePods.find(p => p.id === selectedPod)
-    startTransition(() => {
-      addOptimisticSession({
-        id: 'optimistic',
-        pod_id: selectedPod,
-        started_at: new Date().toISOString(),
-        podLabel: podToStart?.label ?? '',
-        podZone: podToStart?.zone ?? '',
-        podSpecs: podToStart?.specs ?? '',
-        time_balance_seconds: customerBalance
-      })
+    setOverrideSession({
+      id: 'optimistic',
+      pod_id: selectedPod,
+      started_at: new Date().toISOString(),
+      podLabel: podToStart?.label ?? '',
+      podZone: podToStart?.zone ?? '',
+      podSpecs: podToStart?.specs ?? '',
+      time_balance_seconds: customerBalance
     })
 
     const supabase = createClient()
@@ -94,6 +95,7 @@ export default function SessionPanel({
     if (startError) {
       setError(startError.message)
       setLoading(false)
+      setOverrideSession(undefined)
       return
     }
 
@@ -107,9 +109,7 @@ export default function SessionPanel({
       setError('')
       setLoading(true)
 
-      startTransition(() => {
-        addOptimisticSession(null)
-      })
+      setOverrideSession(null)
 
       const supabase = createClient()
       const { error: closeError } = await supabase.rpc('close_session', {
@@ -120,6 +120,7 @@ export default function SessionPanel({
       if (closeError) {
         setError(closeError.message)
         setLoading(false)
+        setOverrideSession(undefined)
         return
       }
 
@@ -128,6 +129,7 @@ export default function SessionPanel({
     } catch (err: any) {
       setError(err?.message || 'An unexpected error occurred')
       setLoading(false)
+      setOverrideSession(undefined)
     }
   }
 
