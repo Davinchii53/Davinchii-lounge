@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useOptimistic, startTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { motion } from 'framer-motion'
@@ -23,12 +23,19 @@ type ActiveSession = {
 }
 
 export default function SessionPanel({
-  activeSession,
+  activeSession: realActiveSession,
   idlePods,
+  customerBalance,
 }: {
   activeSession: ActiveSession | null
   idlePods: Pod[]
+  customerBalance: number
 }) {
+  const [activeSession, addOptimisticSession] = useOptimistic(
+    realActiveSession,
+    (state, newSession: ActiveSession | null) => newSession
+  )
+
   const [selectedPod, setSelectedPod] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -37,7 +44,7 @@ export default function SessionPanel({
   const [elapsed, setElapsed] = useState(0)
 
   useEffect(() => {
-    if (!activeSession || loading) return
+    if (!activeSession) return
     const start = new Date(activeSession.started_at).getTime()
     
     const interval = setInterval(() => {
@@ -45,8 +52,10 @@ export default function SessionPanel({
       setElapsed(Math.floor((now - start) / 1000))
     }, 1000)
 
+    setElapsed(Math.floor((Date.now() - start) / 1000))
+
     return () => clearInterval(interval)
-  }, [activeSession, loading])
+  }, [activeSession])
 
   const formatTime = (totalSeconds: number) => {
     const h = Math.floor(totalSeconds / 3600)
@@ -60,6 +69,19 @@ export default function SessionPanel({
     if (!selectedPod) return
     setError('')
     setLoading(true)
+
+    const podToStart = idlePods.find(p => p.id === selectedPod)
+    startTransition(() => {
+      addOptimisticSession({
+        id: 'optimistic',
+        pod_id: selectedPod,
+        started_at: new Date().toISOString(),
+        podLabel: podToStart?.label ?? '',
+        podZone: podToStart?.zone ?? '',
+        podSpecs: podToStart?.specs ?? '',
+        time_balance_seconds: customerBalance
+      })
+    })
 
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -84,6 +106,10 @@ export default function SessionPanel({
     try {
       setError('')
       setLoading(true)
+
+      startTransition(() => {
+        addOptimisticSession(null)
+      })
 
       const supabase = createClient()
       const { error: closeError } = await supabase.rpc('close_session', {
@@ -162,7 +188,7 @@ export default function SessionPanel({
           disabled={loading}
           className="w-full rounded-lg bg-red-600/20 hover:bg-red-600/40 text-red-400 border border-red-500/50 py-3 text-sm font-bold uppercase tracking-widest transition-all active:scale-[0.98] disabled:opacity-50 relative z-10 shadow-[0_0_15px_rgba(220,38,38,0.2)] hover:shadow-[0_0_25px_rgba(220,38,38,0.4)]"
         >
-          {loading ? 'Disengaging...' : 'End Session'}
+          {loading ? (!realActiveSession ? 'Initializing...' : 'Disengaging...') : 'End Session'}
         </button>
       </motion.div>
     )

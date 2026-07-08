@@ -131,6 +131,7 @@ export default async function DashboardPage() {
                 time_balance_seconds: customer.time_balance_seconds
               } : null}
               idlePods={idlePods ?? []}
+              customerBalance={customer.time_balance_seconds}
             />
             {activeSession && (
               <FnbPanel 
