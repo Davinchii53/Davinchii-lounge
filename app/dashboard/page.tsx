@@ -2,7 +2,6 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import LogoutButton from './logout-button'
 import SessionPanel from './session-panel'
-import FnbPanel from './fnb-panel'
 import ProfileNameEditor from './profile-name-editor'
 import BalanceHistory from './balance-history'
 
@@ -132,14 +131,9 @@ export default async function DashboardPage() {
               } : null}
               idlePods={idlePods ?? []}
               customerBalance={customer.time_balance_seconds}
+              menuItems={menuItems ?? []}
+              sessionOrders={sessionOrders}
             />
-            {activeSession && (
-              <FnbPanel 
-                sessionId={activeSession.id}
-                menuItems={menuItems ?? []}
-                sessionOrders={sessionOrders}
-              />
-            )}
           </div>
           <div className="space-y-6">
             <BalanceHistory adjustments={adjustments ?? []} />

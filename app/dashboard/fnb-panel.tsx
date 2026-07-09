@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { motion } from 'framer-motion'
 
-type MenuItem = {
+export type MenuItem = {
   id: string
   name: string
   category: string
@@ -19,7 +19,7 @@ type OrderItem = {
   menu_items: { name: string }
 }
 
-type Order = {
+export type Order = {
   id: string
   total_idr: number
   total_seconds_charged: number

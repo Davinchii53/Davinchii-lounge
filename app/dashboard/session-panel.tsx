@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { motion } from 'framer-motion'
+import FnbPanel, { MenuItem, Order } from './fnb-panel'
 
 type Pod = {
   id: string
@@ -26,10 +27,14 @@ export default function SessionPanel({
   activeSession: realActiveSession,
   idlePods,
   customerBalance,
+  menuItems,
+  sessionOrders,
 }: {
   activeSession: ActiveSession | null
   idlePods: Pod[]
   customerBalance: number
+  menuItems: MenuItem[]
+  sessionOrders: Order[]
 }) {
   const [overrideSession, setOverrideSession] = useState<ActiveSession | null | undefined>(undefined)
   
@@ -145,11 +150,12 @@ export default function SessionPanel({
     const remainingSeconds = Math.max(0, activeSession.time_balance_seconds - elapsed)
     
     return (
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="space-y-4 rounded-2xl border border-cyan-500/30 bg-black/60 p-6 shadow-[0_0_30px_rgba(6,182,212,0.15)] backdrop-blur-xl relative overflow-hidden group"
-      >
+      <>
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-4 rounded-2xl border border-cyan-500/30 bg-black/60 p-6 shadow-[0_0_30px_rgba(6,182,212,0.15)] backdrop-blur-xl relative overflow-hidden group"
+        >
         {/* Cyberpunk grid overlay */}
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none opacity-50"></div>
         <div className="absolute top-0 right-0 w-48 h-48 bg-cyan-500/20 rounded-full blur-[60px] -mr-10 -mt-10 pointer-events-none group-hover:bg-cyan-500/30 transition-all duration-700"></div>
@@ -192,7 +198,14 @@ export default function SessionPanel({
         >
           {loading ? (!realActiveSession ? 'Initializing...' : 'Disengaging...') : 'End Session'}
         </button>
-      </motion.div>
+        </motion.div>
+
+        <FnbPanel 
+          sessionId={activeSession.id}
+          menuItems={menuItems}
+          sessionOrders={sessionOrders}
+        />
+      </>
     )
   }
 
