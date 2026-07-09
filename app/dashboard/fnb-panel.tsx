@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { motion } from 'framer-motion'
@@ -42,6 +42,14 @@ export default function FnbPanel({
   const [error, setError] = useState('')
   const router = useRouter()
 
+  const [overrideOrders, setOverrideOrders] = useState<Order[] | undefined>(undefined)
+
+  useEffect(() => {
+    setOverrideOrders(undefined)
+  }, [sessionOrders])
+
+  const displayOrders = overrideOrders !== undefined ? overrideOrders : sessionOrders
+
   const handleUpdateQuantity = (id: string, delta: number) => {
     setCart((prev) => {
       const current = prev[id] || 0
@@ -60,6 +68,32 @@ export default function FnbPanel({
     setError('')
     setLoading(true)
 
+    const optimisticItems: OrderItem[] = Object.entries(cart).map(([id, qty]) => {
+      const item = menuItems.find(m => m.id === id)
+      return {
+        menu_item_id: id,
+        quantity: qty,
+        menu_items: { name: item?.name ?? 'Unknown' }
+      }
+    })
+
+    const currentTotalIdr = Object.entries(cart).reduce((sum, [id, qty]) => {
+      const item = menuItems.find(m => m.id === id)
+      return sum + (item ? item.price_idr * qty : 0)
+    }, 0)
+
+    const optimisticOrder: Order = {
+      id: 'optimistic-' + Date.now(),
+      total_idr: currentTotalIdr,
+      total_seconds_charged: 0,
+      status: 'pending',
+      created_at: new Date().toISOString(),
+      order_items: optimisticItems
+    }
+
+    setOverrideOrders([optimisticOrder, ...sessionOrders])
+    setCart({})
+
     const itemsPayload = Object.entries(cart).map(([id, quantity]) => ({
       menu_item_id: id,
       quantity
@@ -74,10 +108,11 @@ export default function FnbPanel({
     if (orderError) {
       setError(orderError.message)
       setLoading(false)
+      setOverrideOrders(undefined)
+      setCart(cart)
       return
     }
 
-    setCart({})
     setLoading(false)
     router.refresh()
   }
@@ -152,11 +187,11 @@ export default function FnbPanel({
         </div>
       )}
 
-      {sessionOrders.length > 0 && (
+      {displayOrders.length > 0 && (
         <div className="pt-6 border-t border-white/10 relative z-10">
           <h3 className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-3">Active Requisitions</h3>
           <div className="space-y-3">
-            {sessionOrders.map(order => (
+            {displayOrders.map(order => (
               <div key={order.id} className="p-4 rounded-lg bg-black/40 border border-white/5 hover:border-white/10 transition-colors">
                 <div className="flex items-center justify-between mb-3">
                   <span className={`text-[10px] uppercase font-bold tracking-widest px-2 py-1 rounded-sm border ${order.status === 'completed' ? 'bg-green-500/10 text-green-400 border-green-500/30 shadow-[0_0_10px_rgba(34,197,94,0.2)]' : 'bg-purple-500/10 text-purple-400 border-purple-500/30 shadow-[0_0_10px_rgba(168,85,247,0.2)]'}`}>
