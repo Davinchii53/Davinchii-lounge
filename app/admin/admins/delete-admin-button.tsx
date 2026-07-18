@@ -28,7 +28,7 @@ export default function DeleteAdminButton({ adminId, adminEmail }: { adminId: st
     <>
       <button
         onClick={() => setIsModalOpen(true)}
-        className="text-xs font-bold text-red-500 hover:text-red-400 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 hover:border-red-500/50 hover:shadow-[0_0_10px_rgba(239,68,68,0.3)] px-3 py-1.5 rounded transition-all"
+        className="text-xs font-bold text-white bg-red-600 hover:bg-red-500 border border-transparent px-3 py-1.5 rounded transition-colors active:translate-y-px"
       >
         Revoke Access
       </button>

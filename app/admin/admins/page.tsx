@@ -13,7 +13,7 @@ export default async function AdminAccountsPage() {
           <p>
             You need to add your <strong>Service Role Key</strong> to your <code>.env.local</code> file to use the Admin Management features.
           </p>
-          <div className="bg-black/50 p-4 rounded font-mono text-sm border border-red-500/10">
+          <div className="bg-black/20 p-4 rounded font-mono text-sm border border-white/5">
             SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
           </div>
           <p className="text-sm text-red-400/80 mt-4">
@@ -44,16 +44,16 @@ export default async function AdminAccountsPage() {
   return (
     <div className="p-8 space-y-8 relative z-10">
       <div className="relative z-10">
-        <h2 className="text-3xl font-bold text-white tracking-tight drop-shadow-[0_0_8px_rgba(6,182,212,0.8)]">Admin Accounts</h2>
+        <h2 className="text-3xl font-bold text-white tracking-tight">Admin Accounts</h2>
         <p className="text-cyan-400/80 font-medium tracking-wide">Manage lounge staff access</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div>
-          <h3 className="text-lg font-bold text-white mb-4 drop-shadow-[0_0_5px_rgba(255,255,255,0.5)]">Current Admins</h3>
-          <div className="bg-black/40 border border-cyan-500/30 rounded-xl overflow-hidden shadow-[0_0_15px_rgba(6,182,212,0.15)]">
+          <h3 className="text-lg font-bold text-white mb-4">Current Admins</h3>
+          <div className="bg-[var(--surface)] border border-white/10 rounded-xl overflow-hidden">
             <table className="w-full text-left text-sm text-neutral-300">
-              <thead className="bg-cyan-950/40 border-b border-cyan-500/30 text-xs uppercase font-bold text-cyan-400 tracking-wider">
+              <thead className="bg-white/5 border-b border-white/10 text-xs font-bold text-cyan-400">
                 <tr>
                   <th className="px-6 py-4">Email</th>
                   <th className="px-6 py-4">Created</th>

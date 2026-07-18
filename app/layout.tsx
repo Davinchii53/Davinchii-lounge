@@ -1,10 +1,16 @@
 import type { Metadata } from "next";
-import { Space_Grotesk } from "next/font/google";
+import { Space_Grotesk, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 import RealtimeSubscriber from "@/components/realtime-subscriber";
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
+  subsets: ["latin"],
+});
+
+const instrumentSerif = Instrument_Serif({
+  weight: "400",
+  variable: "--font-instrument-serif",
   subsets: ["latin"],
 });
 
@@ -24,9 +30,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${spaceGrotesk.variable} h-full antialiased`}
+      className={`${spaceGrotesk.variable} ${instrumentSerif.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-black text-neutral-100 selection:bg-cyan-500/30 selection:text-white">
+      <body className="min-h-full flex flex-col bg-[var(--background)] text-neutral-100 selection:bg-cyan-500/30 selection:text-white">
         <RealtimeSubscriber />
         {children}
       </body>

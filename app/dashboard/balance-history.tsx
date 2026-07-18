@@ -23,7 +23,7 @@ export default function BalanceHistory({ adjustments }: { adjustments: Adjustmen
   }
 
   return (
-    <div className="space-y-4 rounded-xl border border-white/5 bg-neutral-900/50 p-6 backdrop-blur-sm">
+    <div className="space-y-4 rounded-xl border border-white/10 bg-[var(--surface)] p-6">
       <h2 className="text-sm font-semibold tracking-wide text-neutral-400 uppercase">Recent Activity</h2>
       
       {adjustments.length === 0 ? (

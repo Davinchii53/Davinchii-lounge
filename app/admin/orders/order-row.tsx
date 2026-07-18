@@ -17,11 +17,11 @@ export default function AdminOrderRow({ order }: { order: any }) {
   }
 
   return (
-    <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-5 flex flex-col justify-between">
+    <div className="bg-[var(--surface)] border border-white/10 rounded-lg p-5 flex flex-col justify-between relative overflow-hidden group">
       <div>
         <div className="flex justify-between items-start mb-4">
           <div>
-            <span className="text-xs uppercase tracking-wider text-amber-500 font-bold bg-amber-500/10 px-2 py-1 rounded">
+            <span className="text-[10px] font-bold text-amber-500 bg-amber-500/10 border border-amber-500/20 px-2 py-1 rounded">
               {order.status}
             </span>
             <p className="text-xs text-neutral-500 mt-2">
@@ -49,7 +49,7 @@ export default function AdminOrderRow({ order }: { order: any }) {
       <button
         onClick={handleComplete}
         disabled={loading}
-        className="w-full bg-green-600/20 hover:bg-green-600/30 text-green-400 border border-green-600/30 py-2 rounded text-sm font-medium disabled:opacity-50 transition-colors"
+        className="w-full bg-green-600 hover:bg-green-500 text-white border border-transparent py-2 rounded text-sm font-bold disabled:opacity-50 transition-colors active:translate-y-px"
       >
         {loading ? 'Updating...' : 'Mark Delivered'}
       </button>

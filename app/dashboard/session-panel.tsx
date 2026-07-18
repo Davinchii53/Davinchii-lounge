@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { motion } from 'framer-motion'
+import FnbPanel, { MenuItem, Order } from './fnb-panel'
 
 type Pod = {
   id: string
@@ -23,12 +24,26 @@ type ActiveSession = {
 }
 
 export default function SessionPanel({
-  activeSession,
+  activeSession: realActiveSession,
   idlePods,
+  customerBalance,
+  menuItems,
+  sessionOrders,
 }: {
   activeSession: ActiveSession | null
   idlePods: Pod[]
+  customerBalance: number
+  menuItems: MenuItem[]
+  sessionOrders: Order[]
 }) {
+  const [overrideSession, setOverrideSession] = useState<ActiveSession | null | undefined>(undefined)
+  
+  useEffect(() => {
+    setOverrideSession(undefined)
+  }, [realActiveSession])
+
+  const activeSession = overrideSession !== undefined ? overrideSession : realActiveSession
+
   const [selectedPod, setSelectedPod] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -44,6 +59,8 @@ export default function SessionPanel({
       const now = Date.now()
       setElapsed(Math.floor((now - start) / 1000))
     }, 1000)
+
+    setElapsed(Math.floor((Date.now() - start) / 1000))
 
     return () => clearInterval(interval)
   }, [activeSession])
@@ -61,6 +78,17 @@ export default function SessionPanel({
     setError('')
     setLoading(true)
 
+    const podToStart = idlePods.find(p => p.id === selectedPod)
+    setOverrideSession({
+      id: 'optimistic',
+      pod_id: selectedPod,
+      started_at: new Date().toISOString(),
+      podLabel: podToStart?.label ?? '',
+      podZone: podToStart?.zone ?? '',
+      podSpecs: podToStart?.specs ?? '',
+      time_balance_seconds: customerBalance
+    })
+
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -72,6 +100,7 @@ export default function SessionPanel({
     if (startError) {
       setError(startError.message)
       setLoading(false)
+      setOverrideSession(undefined)
       return
     }
 
@@ -85,6 +114,8 @@ export default function SessionPanel({
       setError('')
       setLoading(true)
 
+      setOverrideSession(null)
+
       const supabase = createClient()
       const { error: closeError } = await supabase.rpc('close_session', {
         p_session_id: activeSession.id,
@@ -94,6 +125,7 @@ export default function SessionPanel({
       if (closeError) {
         setError(closeError.message)
         setLoading(false)
+        setOverrideSession(undefined)
         return
       }
 
@@ -102,6 +134,7 @@ export default function SessionPanel({
     } catch (err: any) {
       setError(err?.message || 'An unexpected error occurred')
       setLoading(false)
+      setOverrideSession(undefined)
     }
   }
 
@@ -117,16 +150,12 @@ export default function SessionPanel({
     const remainingSeconds = Math.max(0, activeSession.time_balance_seconds - elapsed)
     
     return (
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="space-y-4 rounded-2xl border border-cyan-500/30 bg-black/60 p-6 shadow-[0_0_30px_rgba(6,182,212,0.15)] backdrop-blur-xl relative overflow-hidden group"
-      >
-        {/* Cyberpunk grid overlay */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none opacity-50"></div>
-        <div className="absolute top-0 right-0 w-48 h-48 bg-cyan-500/20 rounded-full blur-[60px] -mr-10 -mt-10 pointer-events-none group-hover:bg-cyan-500/30 transition-all duration-700"></div>
-        <div className="absolute bottom-0 left-0 w-32 h-32 bg-purple-500/20 rounded-full blur-[50px] -ml-10 -mb-10 pointer-events-none"></div>
-        
+      <>
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-4 rounded-2xl border border-white/10 bg-[var(--surface)] p-6 relative overflow-hidden"
+        >
         <div className="flex items-center justify-between relative z-10">
           <div>
             <p className="text-[10px] font-bold tracking-[0.2em] text-cyan-500 uppercase mb-2">System Active</p>
@@ -160,11 +189,18 @@ export default function SessionPanel({
         <button
           onClick={handleClose}
           disabled={loading}
-          className="w-full rounded-lg bg-red-600/20 hover:bg-red-600/40 text-red-400 border border-red-500/50 py-3 text-sm font-bold uppercase tracking-widest transition-all active:scale-[0.98] disabled:opacity-50 relative z-10 shadow-[0_0_15px_rgba(220,38,38,0.2)] hover:shadow-[0_0_25px_rgba(220,38,38,0.4)]"
+          className="w-full rounded-lg bg-red-600/20 hover:bg-red-600/40 text-red-400 border border-red-500/50 py-3 text-sm font-bold tracking-widest transition-colors duration-150 active:translate-y-px disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface)] relative z-10"
         >
-          {loading ? 'Disengaging...' : 'End Session'}
+          {loading ? (!realActiveSession ? 'Initializing...' : 'Ending...') : 'End Session'}
         </button>
-      </motion.div>
+        </motion.div>
+
+        <FnbPanel 
+          sessionId={activeSession.id}
+          menuItems={menuItems}
+          sessionOrders={sessionOrders}
+        />
+      </>
     )
   }
 
@@ -178,11 +214,9 @@ export default function SessionPanel({
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="space-y-5 rounded-2xl border border-white/10 bg-black/60 p-6 backdrop-blur-xl shadow-2xl relative overflow-hidden"
+      className="space-y-5 rounded-2xl border border-white/10 bg-[var(--surface)] p-6 relative overflow-hidden"
     >
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none opacity-50"></div>
-      
-      <p className="text-[10px] font-bold tracking-[0.2em] text-neutral-400 uppercase relative z-10">Initialize System</p>
+      <p className="text-sm font-semibold tracking-wide text-neutral-400 relative z-10">Start a Session</p>
 
       {idlePods.length === 0 ? (
         <div className="bg-neutral-900/50 border border-neutral-800 rounded-lg p-4 text-center relative z-10">
@@ -214,9 +248,9 @@ export default function SessionPanel({
       <button
         onClick={handleStart}
         disabled={loading || !selectedPod}
-        className="relative z-10 w-full rounded-lg bg-cyan-500 px-4 py-3.5 text-sm font-black uppercase tracking-widest text-black hover:bg-cyan-400 transition-all active:scale-[0.98] disabled:opacity-50 shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] disabled:shadow-none"
+        className="relative z-10 w-full rounded-lg bg-cyan-500 px-4 py-3.5 text-sm font-semibold text-black hover:bg-cyan-400 transition-colors duration-150 active:translate-y-px disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface)]"
       >
-        {loading ? 'Initializing...' : 'Engage'}
+        {loading ? 'Starting...' : 'Start Session'}
       </button>
     </motion.div>
   )

@@ -19,9 +19,9 @@ export default async function AdminMenuPage() {
         <p className="text-neutral-400">Manage F&B availability and pricing</p>
       </div>
 
-      <div className="bg-neutral-900 border border-neutral-800 rounded-lg overflow-hidden">
+      <div className="bg-[var(--surface)] border border-white/10 rounded-lg overflow-hidden">
         <table className="w-full text-left text-sm text-neutral-400">
-          <thead className="bg-neutral-950 border-b border-neutral-800 text-xs uppercase font-medium">
+          <thead className="bg-white/5 border-b border-white/10 text-xs font-bold text-white">
             <tr>
               <th className="px-6 py-4">Item</th>
               <th className="px-6 py-4">Price</th>

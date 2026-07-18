@@ -35,7 +35,7 @@ export default async function AdminOrdersPage() {
         ))}
         
         {(!pendingOrders || pendingOrders.length === 0) && (
-          <div className="col-span-full py-12 text-center text-neutral-500 border border-dashed border-neutral-800 rounded-lg">
+          <div className="col-span-full py-12 text-center text-neutral-500 border border-dashed border-white/10 rounded-lg">
             No pending orders. The kitchen is clear!
           </div>
         )}
